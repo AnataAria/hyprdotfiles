@@ -11,7 +11,6 @@ This repository contains my personal configuration files for setting up my Wayla
 - Eww and Ewww for customizable and beautiful desktop widgets
 - Fish shell with fast, modern command-line workflow
 - WezTerm as a GPU-accelerated terminal emulator
-- Waybar for system status and tray
 - Mako for minimal notifications
 - Preconfigured keybindings for fast navigation
 
