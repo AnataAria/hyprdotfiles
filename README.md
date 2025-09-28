@@ -2,6 +2,9 @@
 
 This repository contains my personal configuration files for setting up my Wayland desktop environment. It is designed around **Hyprland**, and features a highly customized and minimal workflow using **fish** shell, **Eww** widgets, **Swww**, and **WezTerm** as my terminal emulator. These dotfiles aim for a balance of aesthetics, performance, and productivity, tailored to my everyday needs. 🎀
 
+> [!NOTE]
+> This config is already been made for my daily use with hyprland arch only. 
+> If you want to use this for daily use, please config it for your daily suitable.
 ---
 
 ## ✨ Features
@@ -16,15 +19,22 @@ This repository contains my personal configuration files for setting up my Wayla
 
 ## 📂 Structure
 ```bash
-.config/
-├── hypr/
-│   ├── hyprland.conf
-│   └── scripts/
-├── waybar/
-├── eww/           # Eww widgets (bars, panels, system stats)
-├── swww/          # Swww
-├── fish/          # Fish shell configs (functions, prompts)
-├── wezterm/       # WezTerm configuration
+.
+├── asset
+├── .config
+│   ├── cava
+│   ├── eww
+│   ├── fish
+│   ├── hypr
+│   ├── mako
+│   ├── swww
+│   ├── waybar
+│   ├── wezterm
+│   └── wofi
+├── README.md
+└── script
+    ├── bash
+    └── main.sh
 ```
 
 ## 🖥️ Core Applications
