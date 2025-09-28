@@ -1,0 +1,13 @@
+(defpoll ram_usage :interval "1s" `bash scripts/ram_usage.sh`)
+        (defwidget ram_usage []
+            (box :class "mem_module" :vexpand "false" :hexpand "false" :space-evenly "false"
+                (circular-progress :value ram_usage
+                    :class "membar"
+                    :thickness 7
+                (button 
+                    :class "iconmem"
+                    :limit-width 2
+                    :tooltip "ram on ${ram_usage}%"
+                    :show_truncated false
+                    :wrap false
+                    ""))))

@@ -1,0 +1,21 @@
+(defpoll clock_time :interval "5m" "date +\%I")
+(defpoll clock_minute :interval "5s" "date +\%M")
+(defpoll clock_date :interval "10h" "date '+%d/%m'")
+(defvar time_rev false)
+(defvar calender_rev false)
+(defwidget desktop_clock []
+  (eventbox :onhover "${EWW_CMD} update time_rev=true"
+    :onhoverlost "${EWW_CMD} update time_rev=false"
+    (box :class "module" :space-evenly "false" :orientation "h" :spacing "3"
+      (label :text clock_time :class "clock_time_class" )
+      (label :text "󰇙" :class "clock_time_sep" )
+      (label :text clock_minute :class "clock_minute_class")
+      (revealer :transition "slideleft"
+        :reveal time_rev
+        :duration "350ms"
+        (button :class "clock_date_class"
+          :onclick "${EWW_CMD} open calendar && ${EWW_CMD} update calender_rev false" clock_date
+        )
+      ))))
+
+

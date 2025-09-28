@@ -1,6 +1,0 @@
-(defpoll volume :interval "5s" `pamixer --get-volume` )
-
-(defwidget audio []
-    (eventbox :onclick "scripts/audio.sh"
-    (box :class "module" :space-evenly "true" :orientation "h" :spacing "3" 
-            (label :text "󰓃 ${volume}%"))))

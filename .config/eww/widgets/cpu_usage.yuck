@@ -1,0 +1,14 @@
+(defpoll cpu_usage :interval "1s" `bash scripts/cpu_usage.sh`)
+
+(defwidget cpu_usage []
+    (box :class "cpu_module" :vexpand "false" :hexpand "false" :space-evenly "false"
+        (circular-progress :value cpu_usage
+            :class "cpubar"
+            :thickness 7
+            (button 
+                :class "iconcpu"
+                :limit-width 2
+                :tooltip "cpu on ${cpu_usage}%"
+                :show_truncated false
+                :wrap false
+                ""))))

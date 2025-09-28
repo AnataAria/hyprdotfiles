@@ -1,3 +1,0 @@
-(defwidget sep []
-    (box :class "module-2" :vexpand "false" :hexpand "false"
-      (label :class "separ" :text "|")))
