@@ -1,7 +1,9 @@
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
+import Quickshell.Hyprland
 import Quickshell.Io
+import "../profile"
 
 PanelWindow {
     id: profilePanel
@@ -11,18 +13,23 @@ PanelWindow {
     property var screen
     property var settingsWindow
 
+    readonly property var hyprlandMonitor: Hyprland.focusedMonitor
+    readonly property real hyprlandScale: hyprlandMonitor && hyprlandMonitor.scale ? hyprlandMonitor.scale : 1.0
+    readonly property real screenWidth: hyprlandMonitor ? hyprlandMonitor.width : 1920
+    readonly property real screenHeight: hyprlandMonitor ? hyprlandMonitor.height : 1080
+
     anchors {
         right: true
         top: true
     }
 
     margins {
-        right: 10
-        top: 10
+        right: Math.round(10 * hyprlandScale)
+        top: Math.round(10 * hyprlandScale)
     }
 
-    implicitWidth: 420
-    implicitHeight: 700
+    implicitWidth: Math.round(Math.min(420, screenWidth * 0.22) * hyprlandScale)
+    implicitHeight: Math.round(Math.min(700, screenHeight * 0.65) * hyprlandScale)
     visible: loading
 
     color: "transparent"
@@ -51,634 +58,242 @@ PanelWindow {
         brightnessSetProc.running = true;
     }
 
+    Component.onCompleted: {
+        usernameProc.running = true;
+        hostnameProc.running = true;
+        uptimeProc.running = true;
+        kernelProc.running = true;
+        volumeGetProc.running = true;
+        brightnessGetProc.running = true;
+        wifiSsidProc.running = true;
+    }
+
     Rectangle {
         anchors.fill: parent
         color: profilePanel.config.colors.bgCard
-        radius: 16
-        border.width: 1
+        radius: Math.round(16 * hyprlandScale)
+        border.width: Math.max(1, Math.round(1 * hyprlandScale))
         border.color: profilePanel.config.colors.bgHighlight
 
         Flickable {
             anchors.fill: parent
-            anchors.margins: 20
+            anchors.margins: Math.round(20 * hyprlandScale)
             contentHeight: mainColumn.height
             clip: true
 
             Column {
                 id: mainColumn
                 width: parent.width
-                spacing: 20
+                spacing: Math.round(20 * hyprlandScale)
 
+                // Header Row
                 Row {
                     width: parent.width
-                    spacing: 12
+                    spacing: Math.round(12 * hyprlandScale)
 
                     Text {
                         text: "Quick Settings"
                         font.family: profilePanel.config.fontFamily
-                        font.pixelSize: 18
+                        font.pixelSize: Math.round(18 * hyprlandScale)
                         font.weight: Font.Bold
                         color: profilePanel.config.colors.fg
                         anchors.verticalCenter: parent.verticalCenter
                     }
 
                     Item {
-                        width: parent.width - 250
+                        width: parent.width - Math.round(250 * hyprlandScale)
                         height: 1
                     }
 
                     Rectangle {
-                        width: 40
-                        height: 40
-                        radius: 20
+                        width: Math.round(40 * hyprlandScale)
+                        height: Math.round(40 * hyprlandScale)
+                        radius: Math.round(20 * hyprlandScale)
                         color: profilePanel.config.colors.bg
                         anchors.verticalCenter: parent.verticalCenter
 
                         Text {
+                            text: "⚙"
                             anchors.centerIn: parent
-                            text: "󰒓"
-                            font.family: profilePanel.config.fontFamily
-                            font.pixelSize: 20
+                            font.pixelSize: Math.round(20 * hyprlandScale)
                             color: profilePanel.config.colors.fg
                         }
 
                         MouseArea {
                             anchors.fill: parent
-                            hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
                             onClicked: {
                                 if (profilePanel.settingsWindow) {
                                     profilePanel.settingsWindow.visible = !profilePanel.settingsWindow.visible;
                                 }
                             }
-                            onEntered: parent.color = profilePanel.config.colors.bgCardHover
-                            onExited: parent.color = profilePanel.config.colors.bg
                         }
                     }
                 }
 
+                // User Info Card
+                UserInfoCard {
+                    config: profilePanel.config
+                    username: usernameText.text
+                    uptime: uptimeText.text
+                    scale: profilePanel.hyprlandScale
+                }
+
+                // Quick Toggles Grid
+                QuickTogglesGrid {
+                    config: profilePanel.config
+                    wifiEnabled: profilePanel.wifiEnabled
+                    bluetoothEnabled: profilePanel.bluetoothEnabled
+                    focusModeEnabled: profilePanel.focusModeEnabled
+                    darkThemeEnabled: profilePanel.darkThemeEnabled
+                    wifiSsid: profilePanel.wifiSsid
+                    scale: profilePanel.hyprlandScale
+
+                    onWifiToggled: {
+                        profilePanel.wifiEnabled = !profilePanel.wifiEnabled;
+                        wifiProc.running = true;
+                    }
+                    onBluetoothToggled: {
+                        profilePanel.bluetoothEnabled = !profilePanel.bluetoothEnabled;
+                        btProc.running = true;
+                    }
+                    onFocusModeToggled: {
+                        profilePanel.focusModeEnabled = !profilePanel.focusModeEnabled;
+                    }
+                    onDarkThemeToggled: {
+                        profilePanel.darkThemeEnabled = !profilePanel.darkThemeEnabled;
+                    }
+                }
+
+                // Volume Slider
+                SliderControl {
+                    config: profilePanel.config
+                    icon: "󰕾"
+                    label: "Volume"
+                    value: profilePanel.volumeLevel
+                    scale: profilePanel.hyprlandScale
+                    onValueChanged: {
+                        profilePanel.volumeLevel = value;
+                    }
+                }
+
+                // Brightness Slider
+                SliderControl {
+                    config: profilePanel.config
+                    icon: "󰃠"
+                    label: "Brightness"
+                    value: profilePanel.brightnessLevel
+                    scale: profilePanel.hyprlandScale
+                    onValueChanged: {
+                        profilePanel.brightnessLevel = value;
+                    }
+                }
+
+                // Separator
                 Rectangle {
                     width: parent.width
-                    height: 100
-                    radius: 12
-                    color: profilePanel.config.colors.bg
-
-                    Row {
-                        anchors {
-                            fill: parent
-                            margins: 16
-                        }
-                        spacing: 16
-
-                        Rectangle {
-                            width: 68
-                            height: 68
-                            radius: 34
-                            color: profilePanel.config.colors.accent
-                            anchors.verticalCenter: parent.verticalCenter
-
-                            Text {
-                                anchors.centerIn: parent
-                                text: hostnameText.text.substring(0, 1).toUpperCase()
-                                font.family: profilePanel.config.fontFamily
-                                font.pixelSize: 32
-                                font.weight: Font.Bold
-                                color: profilePanel.config.colors.accentFg
-                            }
-                        }
-
-                        Column {
-                            anchors.verticalCenter: parent.verticalCenter
-                            spacing: 4
-                            width: parent.width - 150
-
-                            Text {
-                                text: hostnameText.text
-                                font.family: profilePanel.config.fontFamily
-                                font.pixelSize: 20
-                                font.weight: Font.Bold
-                                color: profilePanel.config.colors.fg
-                            }
-
-                            Text {
-                                text: "󰥔 up " + uptimeText.text
-                                font.family: profilePanel.config.fontFamily
-                                font.pixelSize: 13
-                                color: profilePanel.config.colors.fgDim
-                            }
-                        }
-                    }
-                }
-
-                Column {
-                    width: parent.width
-                    spacing: 12
-
-                    Row {
-                        width: parent.width
-                        spacing: 12
-
-                        QuickToggle {
-                            config: profilePanel.config
-                            width: (parent.width - 12) / 2
-                            icon: profilePanel.wifiEnabled ? "󰖩" : "󰖪"
-                            label: "Network"
-                            subtitle: profilePanel.wifiEnabled ? profilePanel.wifiSsid : "Off"
-                            active: profilePanel.wifiEnabled
-                            onClicked: {
-                                profilePanel.wifiEnabled = !profilePanel.wifiEnabled;
-                                wifiProc.running = true;
-                            }
-                        }
-
-                        QuickToggle {
-                            config: profilePanel.config
-                            width: (parent.width - 12) / 2
-                            icon: profilePanel.bluetoothEnabled ? "󰂯" : "󰂲"
-                            label: "Bluetooth"
-                            subtitle: profilePanel.bluetoothEnabled ? "On" : "Off"
-                            active: profilePanel.bluetoothEnabled
-                            onClicked: {
-                                profilePanel.bluetoothEnabled = !profilePanel.bluetoothEnabled;
-                                btProc.running = true;
-                            }
-                        }
-                    }
-
-                    Row {
-                        width: parent.width
-                        spacing: 12
-
-                        QuickToggle {
-                            config: profilePanel.config
-                            width: (parent.width - 12) / 2
-                            icon: profilePanel.focusModeEnabled ? "󰂛" : "󰂛"
-                            label: "Focus Mode"
-                            subtitle: profilePanel.focusModeEnabled ? "On" : "Off"
-                            active: profilePanel.focusModeEnabled
-                            onClicked: {
-                                profilePanel.focusModeEnabled = !profilePanel.focusModeEnabled;
-                            }
-                        }
-
-                        QuickToggle {
-                            config: profilePanel.config
-                            width: (parent.width - 12) / 2
-                            icon: profilePanel.darkThemeEnabled ? "󰔎" : "󰖔"
-                            label: "Interface"
-                            subtitle: profilePanel.darkThemeEnabled ? "On" : "Off"
-                            active: profilePanel.darkThemeEnabled
-                            onClicked: {
-                                profilePanel.darkThemeEnabled = !profilePanel.darkThemeEnabled;
-                            }
-                        }
-                    }
-                }
-
-                Rectangle {
-                    width: parent.width
-                    height: 70
-                    radius: 12
-                    color: profilePanel.config.colors.bg
-
-                    Column {
-                        anchors {
-                            fill: parent
-                            margins: 16
-                        }
-                        spacing: 8
-
-                        Row {
-                            width: parent.width
-                            spacing: 8
-
-                            Text {
-                                text: "󰕾"
-                                font.family: profilePanel.config.fontFamily
-                                font.pixelSize: 20
-                                color: profilePanel.config.colors.fg
-                                anchors.verticalCenter: parent.verticalCenter
-                            }
-
-                            Text {
-                                text: "Volume"
-                                font.family: profilePanel.config.fontFamily
-                                font.pixelSize: 14
-                                font.weight: Font.Medium
-                                color: profilePanel.config.colors.fg
-                                anchors.verticalCenter: parent.verticalCenter
-                                width: 80
-                            }
-
-                            Item {
-                                width: parent.width - 180
-                                height: 1
-                            }
-
-                            Text {
-                                text: Math.min(100, Math.max(0, Math.round(profilePanel.volumeLevel * 100))) + "%"
-                                font.family: profilePanel.config.fontFamilyMono
-                                font.pixelSize: 13
-                                color: profilePanel.config.colors.fgDim
-                                anchors.verticalCenter: parent.verticalCenter
-                                horizontalAlignment: Text.AlignRight
-                                width: 45
-                            }
-                        }
-
-                        Rectangle {
-                            id: volumeTrack
-                            width: parent.width
-                            height: 6
-                            radius: 3
-                            color: profilePanel.config.colors.workspaceInactive
-
-                            Rectangle {
-                                width: parent.width * profilePanel.volumeLevel
-                                height: parent.height
-                                radius: 3
-                                color: profilePanel.config.colors.accent
-                            }
-
-                            MouseArea {
-                                anchors.fill: parent
-                                onClicked: function (mouse) {
-                                    profilePanel.volumeLevel = Math.max(0, Math.min(1, mouse.x / width));
-                                }
-                                onPositionChanged: function (mouse) {
-                                    if (pressed) {
-                                        profilePanel.volumeLevel = Math.max(0, Math.min(1, mouse.x / width));
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                Rectangle {
-                    width: parent.width
-                    height: 70
-                    radius: 12
-                    color: profilePanel.config.colors.bg
-
-                    Column {
-                        anchors {
-                            fill: parent
-                            margins: 16
-                        }
-                        spacing: 8
-
-                        Row {
-                            width: parent.width
-                            spacing: 8
-
-                            Text {
-                                text: "󰃠"
-                                font.family: profilePanel.config.fontFamily
-                                font.pixelSize: 20
-                                color: profilePanel.config.colors.fg
-                                anchors.verticalCenter: parent.verticalCenter
-                            }
-
-                            Text {
-                                text: "Brightness"
-                                font.family: profilePanel.config.fontFamily
-                                font.pixelSize: 14
-                                font.weight: Font.Medium
-                                color: profilePanel.config.colors.fg
-                                anchors.verticalCenter: parent.verticalCenter
-                                width: 80
-                            }
-
-                            Item {
-                                width: parent.width - 180
-                                height: 1
-                            }
-
-                            Text {
-                                text: Math.min(100, Math.max(0, Math.round(profilePanel.brightnessLevel * 100))) + "%"
-                                font.family: profilePanel.config.fontFamilyMono
-                                font.pixelSize: 13
-                                color: profilePanel.config.colors.fgDim
-                                anchors.verticalCenter: parent.verticalCenter
-                                horizontalAlignment: Text.AlignRight
-                                width: 45
-                            }
-                        }
-
-                        Rectangle {
-                            id: brightnessTrack
-                            width: parent.width
-                            height: 6
-                            radius: 3
-                            color: profilePanel.config.colors.workspaceInactive
-
-                            Rectangle {
-                                width: parent.width * profilePanel.brightnessLevel
-                                height: parent.height
-                                radius: 3
-                                color: profilePanel.config.colors.accent
-                            }
-
-                            MouseArea {
-                                anchors.fill: parent
-                                onClicked: function (mouse) {
-                                    profilePanel.brightnessLevel = Math.max(0, Math.min(1, mouse.x / width));
-                                }
-                                onPositionChanged: function (mouse) {
-                                    if (pressed) {
-                                        profilePanel.brightnessLevel = Math.max(0, Math.min(1, mouse.x / width));
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                Rectangle {
-                    width: parent.width
-                    height: 1
-                    color: profilePanel.config.colors.fgDim
+                    height: Math.max(1, Math.round(2 * hyprlandScale))
+                    color: profilePanel.config.colors.bgHighlight
                     opacity: 0.2
                 }
 
-                Column {
-                    width: parent.width
-                    spacing: 16
-
-                    Text {
-                        text: "System Monitor"
-                        font.family: profilePanel.config.fontFamily
-                        font.pixelSize: 16
-                        font.weight: Font.Bold
-                        color: profilePanel.config.colors.fg
-                    }
-
-                    Row {
-                        spacing: 15
-                        anchors.horizontalCenter: parent.horizontalCenter
-
-                        // CPU
-                        MonitorCircle {
-                            config: profilePanel.config
-                            label: "CPU"
-                            valueText: cpuPercent.text
-                            circleColor: profilePanel.config.colors.info
-                            canvas: cpuCanvas
-                        }
-
-                        // RAM
-                        MonitorCircle {
-                            config: profilePanel.config
-                            label: "RAM"
-                            valueText: ramPercent.text
-                            circleColor: profilePanel.config.colors.warning
-                            canvas: ramCanvas
-                        }
-
-                        // GPU
-                        MonitorCircle {
-                            config: profilePanel.config
-                            label: "GPU"
-                            valueText: gpuPercent.text
-                            circleColor: profilePanel.config.colors.success
-                            canvas: gpuCanvas
-                        }
-
-                        // TEMP
-                        MonitorCircle {
-                            config: profilePanel.config
-                            label: "TEMP"
-                            valueText: tempText.text
-                            circleColor: tempCanvas.temperature > 80 ? profilePanel.config.colors.error : tempCanvas.temperature > 60 ? profilePanel.config.colors.warning : profilePanel.config.colors.purple
-                            canvas: tempCanvas
-                        }
-                    }
+                // System Monitor
+                SystemMonitorSection {
+                    config: profilePanel.config
+                    cpuText: cpuPercent.text
+                    ramText: ramPercent.text
+                    gpuText: gpuPercent.text
+                    tempText: tempText.text
+                    cpuCanvas: cpuCanvas
+                    ramCanvas: ramCanvas
+                    gpuCanvas: gpuCanvas
+                    tempCanvas: tempCanvas
+                    scale: profilePanel.hyprlandScale
                 }
 
-                // System Info
-                Rectangle {
-                    width: parent.width
-                    height: systemInfoCol.height + 24
-                    radius: 12
-                    color: profilePanel.config.colors.bg
-
-                    Column {
-                        id: systemInfoCol
-                        anchors {
-                            left: parent.left
-                            right: parent.right
-                            top: parent.top
-                            margins: 16
-                        }
-                        spacing: 12
-
-                        Text {
-                            text: "System Information"
-                            font.family: profilePanel.config.fontFamily
-                            font.pixelSize: 14
-                            font.weight: Font.Bold
-                            color: profilePanel.config.colors.fg
-                        }
-
-                        InfoRow {
-                            config: profilePanel.config
-                            icon: "󰌢"
-                            label: "Hostname"
-                            value: hostnameText.text
-                        }
-
-                        InfoRow {
-                            config: profilePanel.config
-                            icon: "󰌽"
-                            label: "Kernel"
-                            value: kernelText.text
-                        }
-
-                        InfoRow {
-                            config: profilePanel.config
-                            icon: "󰥔"
-                            label: "Uptime"
-                            value: uptimeText.text
-                        }
-                    }
+                // System Info Card
+                SystemInfoCard {
+                    config: profilePanel.config
+                    hostname: hostnameText.text
+                    kernel: kernelText.text
+                    uptime: uptimeText.text
+                    scale: profilePanel.hyprlandScale
                 }
 
                 // Power Options
-                Row {
-                    width: parent.width
-                    spacing: 12
-
-                    PowerButton {
-                        config: profilePanel.config
-                        width: (parent.width - 24) / 3
-                        icon: "󰌾"
-                        label: "Lock"
-                    }
-
-                    PowerButton {
-                        config: profilePanel.config
-                        width: (parent.width - 24) / 3
-                        icon: "󰜉"
-                        label: "Restart"
-                    }
-
-                    PowerButton {
-                        config: profilePanel.config
-                        width: (parent.width - 24) / 3
-                        icon: "󰐥"
-                        label: "Shutdown"
-                    }
+                PowerOptionsRow {
+                    config: profilePanel.config
+                    scale: profilePanel.hyprlandScale
                 }
 
                 // Bottom padding
                 Item {
                     width: parent.width
-                    height: 10
+                    height: Math.round(10 * hyprlandScale)
                 }
             }
         }
     }
 
-    // Hidden elements for canvas and data storage
+    // Hidden Canvas elements for system monitoring
     Canvas {
         id: cpuCanvas
-        width: 70
-        height: 70
         visible: false
         property real percentage: 0
+    }
 
-        onPercentageChanged: requestPaint()
-
-        onPaint: {
-            var ctx = getContext("2d");
-            ctx.clearRect(0, 0, width, height);
-            ctx.lineWidth = 6;
-            ctx.strokeStyle = profilePanel.config.colors.info;
-            ctx.lineCap = "round";
-            var centerX = width / 2;
-            var centerY = height / 2;
-            var radius = 32;
-            var startAngle = -Math.PI / 2;
-            var endAngle = startAngle + (percentage / 100) * 2 * Math.PI;
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, radius, startAngle, endAngle, false);
-            ctx.stroke();
-        }
-
-        Behavior on percentage {
-            NumberAnimation {
-                duration: 300
-            }
-        }
+    NumberAnimation {
+        id: cpuAnim
+        target: cpuCanvas
+        property: "percentage"
+        duration: 750
+        easing.type: Easing.InOutQuad
     }
 
     Canvas {
         id: ramCanvas
-        width: 70
-        height: 70
         visible: false
         property real percentage: 0
+    }
 
-        onPercentageChanged: requestPaint()
-
-        onPaint: {
-            var ctx = getContext("2d");
-            ctx.clearRect(0, 0, width, height);
-            ctx.lineWidth = 6;
-            ctx.strokeStyle = profilePanel.config.colors.warning;
-            ctx.lineCap = "round";
-            var centerX = width / 2;
-            var centerY = height / 2;
-            var radius = 32;
-            var startAngle = -Math.PI / 2;
-            var endAngle = startAngle + (percentage / 100) * 2 * Math.PI;
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, radius, startAngle, endAngle, false);
-            ctx.stroke();
-        }
-
-        Behavior on percentage {
-            NumberAnimation {
-                duration: 300
-            }
-        }
+    NumberAnimation {
+        id: ramAnim
+        target: ramCanvas
+        property: "percentage"
+        duration: 750
+        easing.type: Easing.InOutQuad
     }
 
     Canvas {
         id: gpuCanvas
-        width: 70
-        height: 70
         visible: false
         property real percentage: 0
+    }
 
-        onPercentageChanged: requestPaint()
-
-        onPaint: {
-            var ctx = getContext("2d");
-            ctx.clearRect(0, 0, width, height);
-            ctx.lineWidth = 6;
-            ctx.strokeStyle = profilePanel.config.colors.success;
-            ctx.lineCap = "round";
-            var centerX = width / 2;
-            var centerY = height / 2;
-            var radius = 32;
-            var startAngle = -Math.PI / 2;
-            var endAngle = startAngle + (percentage / 100) * 2 * Math.PI;
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, radius, startAngle, endAngle, false);
-            ctx.stroke();
-        }
-
-        Behavior on percentage {
-            NumberAnimation {
-                duration: 300
-            }
-        }
+    NumberAnimation {
+        id: gpuAnim
+        target: gpuCanvas
+        property: "percentage"
+        duration: 750
+        easing.type: Easing.InOutQuad
     }
 
     Canvas {
         id: tempCanvas
-        width: 70
-        height: 70
         visible: false
-        property real temperature: 0
         property real percentage: 0
-
-        onTemperatureChanged: {
-            percentage = Math.min(temperature, 100);
-            requestPaint();
-        }
-
-        onPaint: {
-            var ctx = getContext("2d");
-            ctx.clearRect(0, 0, width, height);
-            ctx.lineWidth = 6;
-            if (temperature > 80) {
-                ctx.strokeStyle = profilePanel.config.colors.error;
-            } else if (temperature > 60) {
-                ctx.strokeStyle = profilePanel.config.colors.warning;
-            } else {
-                ctx.strokeStyle = profilePanel.config.colors.purple;
-            }
-            ctx.lineCap = "round";
-            var centerX = width / 2;
-            var centerY = height / 2;
-            var radius = 32;
-            var startAngle = -Math.PI / 2;
-            var endAngle = startAngle + (percentage / 100) * 2 * Math.PI;
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, radius, startAngle, endAngle, false);
-            ctx.stroke();
-        }
-
-        Behavior on percentage {
-            NumberAnimation {
-                duration: 300
-            }
-        }
+        property real temperature: 0
     }
 
+    NumberAnimation {
+        id: tempAnim
+        target: tempCanvas
+        property: "percentage"
+        duration: 750
+        easing.type: Easing.InOutQuad
+    }
+
+    // Hidden text elements for data storage
     Text {
         id: cpuPercent
         text: "0%"
@@ -704,6 +319,12 @@ PanelWindow {
     }
 
     Text {
+        id: usernameText
+        text: "user"
+        visible: false
+    }
+
+    Text {
         id: hostnameText
         text: "unknown"
         visible: false
@@ -721,84 +342,101 @@ PanelWindow {
         visible: false
     }
 
-    // System monitoring timer
+    // Update timer
     Timer {
+        id: updateTimer
         interval: 2000
-        running: profilePanel.loading
         repeat: true
+        running: profilePanel.loading
         triggeredOnStart: true
         onTriggered: {
-            cpuMonitorProc.running = true;
-            ramMonitorProc.running = true;
-            gpuMonitorProc.running = true;
-            tempMonitorProc.running = true;
+            cpuProc.running = true;
+            ramProc.running = true;
+            gpuProc.running = true;
+            tempProc.running = true;
+            usernameProc.running = true;
             hostnameProc.running = true;
             uptimeProc.running = true;
             kernelProc.running = true;
-            wifiSsidProc.running = true;
             volumeGetProc.running = true;
             brightnessGetProc.running = true;
+            wifiSsidProc.running = true;
         }
     }
 
-    // Processes
+    // System monitoring processes
     Process {
-        id: cpuMonitorProc
-        command: ["sh", "-c", "top -bn1 | grep 'Cpu(s)' | sed 's/.*, *\\([0-9.]*\\)%* id.*/\\1/' | awk '{print 100 - $1}'"]
+        id: cpuProc
+        command: ["sh", "-c", "top -bn1 | grep 'Cpu(s)' | awk '{print 100 - $8}'"]
         stdout: SplitParser {
             onRead: data => {
-                var value = parseFloat(data.trim());
-                if (!isNaN(value)) {
-                    cpuPercent.text = Math.round(value) + "%";
-                    cpuCanvas.percentage = value;
+                let val = parseFloat(data);
+                if (!isNaN(val)) {
+                    cpuPercent.text = Math.round(val) + "%";
+                    cpuAnim.to = val;
+                    cpuAnim.start();
                 }
             }
         }
     }
 
     Process {
-        id: ramMonitorProc
+        id: ramProc
         command: ["sh", "-c", "free | grep Mem | awk '{print ($3/$2) * 100.0}'"]
         stdout: SplitParser {
             onRead: data => {
-                var value = parseFloat(data.trim());
-                if (!isNaN(value)) {
-                    ramPercent.text = Math.round(value) + "%";
-                    ramCanvas.percentage = value;
+                let val = parseFloat(data);
+                if (!isNaN(val)) {
+                    ramPercent.text = Math.round(val) + "%";
+                    ramAnim.to = val;
+                    ramAnim.start();
                 }
             }
         }
     }
 
     Process {
-        id: gpuMonitorProc
-        command: ["sh", "-c", "nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits 2>/dev/null || radeontop -d - -l 1 2>/dev/null | grep -oP 'gpu \\K[0-9]+' || cat /sys/class/drm/card0/device/gpu_busy_percent 2>/dev/null || echo 'N/A'"]
+        id: gpuProc
+        command: ["sh", "-c", "nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits 2>/dev/null || echo 'N/A'"]
         stdout: SplitParser {
             onRead: data => {
-                var value = data.trim();
-                if (value === "N/A" || value === "") {
-                    gpuPercent.text = "N/A";
-                    gpuCanvas.percentage = 0;
+                let val = parseFloat(data);
+                if (!isNaN(val)) {
+                    gpuPercent.text = Math.round(val) + "%";
+                    gpuAnim.to = val;
+                    gpuAnim.start();
                 } else {
-                    var gpuValue = parseFloat(value);
-                    if (!isNaN(gpuValue)) {
-                        gpuPercent.text = Math.round(gpuValue) + "%";
-                        gpuCanvas.percentage = gpuValue;
-                    }
+                    gpuPercent.text = "N/A";
                 }
             }
         }
     }
 
     Process {
-        id: tempMonitorProc
-        command: ["sh", "-c", "sensors | grep 'Tctl' | awk '{print $2}' | tr -d '+°C' || sensors | grep 'Package id 0' | awk '{print $4}' | tr -d '+°C' || cat /sys/class/thermal/thermal_zone0/temp 2>/dev/null | awk '{print $1/1000}' || echo '0'"]
+        id: tempProc
+        command: ["sh", "-c", "sensors 2>/dev/null | grep -E 'Tctl:|Package id 0:|Tdie:|Core 0:' | head -1 | awk '{print $2}' | sed 's/+//;s/°C//' || cat /sys/class/hwmon/hwmon*/temp1_input 2>/dev/null | head -1 | awk '{print $1/1000}' || echo '0'"]
         stdout: SplitParser {
             onRead: data => {
-                var value = parseFloat(data.trim());
-                if (!isNaN(value)) {
-                    tempText.text = Math.round(value) + "°";
-                    tempCanvas.temperature = value;
+                let val = parseFloat(data.trim());
+                if (!isNaN(val) && val > 0) {
+                    tempText.text = Math.round(val) + "°";
+                    tempCanvas.temperature = val;
+                    let percent = Math.min(100, (val / 100) * 100);
+                    tempAnim.to = percent;
+                    tempAnim.start();
+                }
+            }
+        }
+    }
+
+    Process {
+        id: usernameProc
+        command: ["sh", "-c", "whoami 2>/dev/null || echo $USER || echo 'user'"]
+        stdout: SplitParser {
+            onRead: data => {
+                var result = data.trim();
+                if (result && result.length > 0) {
+                    usernameText.text = result;
                 }
             }
         }
@@ -806,69 +444,36 @@ PanelWindow {
 
     Process {
         id: hostnameProc
-        command: ["sh", "-c", "cat /etc/hostname 2>/dev/null || cat /proc/sys/kernel/hostname 2>/dev/null || echo 'unknown'"]
+        command: ["sh", "-c", "cat /etc/hostname 2>/dev/null || hostname 2>/dev/null || echo 'unknown'"]
         stdout: SplitParser {
             onRead: data => {
-                hostnameText.text = data.trim();
-            }
-        }
-    }
-
-    Process {
-        id: uptimeProc
-        command: ["sh", "-c", "uptime -p | sed 's/up //'"]
-        stdout: SplitParser {
-            onRead: data => {
-                uptimeText.text = data.trim();
-            }
-        }
-    }
-
-    Process {
-        id: kernelProc
-        command: ["uname", "-r"]
-        stdout: SplitParser {
-            onRead: data => {
-                kernelText.text = data.trim();
-            }
-        }
-    }
-
-    Process {
-        id: wifiProc
-        command: ["sh", "-c", wifiEnabled ? "nmcli radio wifi on" : "nmcli radio wifi off"]
-        stdout: SplitParser {
-            onRead: data => {
-                console.log("WiFi:", data);
-            }
-        }
-    }
-
-    Process {
-        id: wifiSsidProc
-        command: ["sh", "-c", "nmcli -t -f active,ssid dev wifi | grep '^yes' | cut -d: -f2"]
-        stdout: SplitParser {
-            onRead: data => {
-                var ssid = data.trim();
-                if (ssid !== "") {
-                    profilePanel.wifiSsid = ssid;
-                    profilePanel.wifiEnabled = true;
-                } else {
-                    profilePanel.wifiSsid = "WiFi";
-                    profilePanel.wifiEnabled = false;
+                var result = data.trim();
+                if (result && result.length > 0) {
+                    hostnameText.text = result;
                 }
             }
         }
     }
 
     Process {
-        id: volumeGetProc
-        command: ["sh", "-c", "pactl get-sink-volume @DEFAULT_SINK@ | grep -oP '\\d+%' | head -1 | tr -d '%'"]
+        id: uptimeProc
+        command: ["sh", "-c", "uptime -p 2>/dev/null | sed 's/up //' || echo '0 min'"]
         stdout: SplitParser {
             onRead: data => {
-                var vol = parseInt(data.trim());
-                if (!isNaN(vol)) {
-                    profilePanel.volumeLevel = Math.min(1.0, Math.max(0.0, vol / 100.0));
+                var result = data.trim();
+                uptimeText.text = result;
+            }
+        }
+    }
+
+    Process {
+        id: volumeGetProc
+        command: ["sh", "-c", "pactl get-sink-volume @DEFAULT_SINK@ | grep -Po '\\d+(?=%)' | head -n1"]
+        stdout: SplitParser {
+            onRead: data => {
+                let val = parseInt(data);
+                if (!isNaN(val)) {
+                    profilePanel.volumeLevel = val / 100.0;
                 }
             }
         }
@@ -881,12 +486,16 @@ PanelWindow {
 
     Process {
         id: brightnessGetProc
-        command: ["sh", "-c", "brightnessctl -m | cut -d, -f4 | tr -d '%'"]
+        command: ["sh", "-c", "echo $(brightnessctl g) $(brightnessctl m)"]
         stdout: SplitParser {
             onRead: data => {
-                var bright = parseInt(data.trim());
-                if (!isNaN(bright)) {
-                    profilePanel.brightnessLevel = Math.min(1.0, Math.max(0.0, bright / 100.0));
+                let parts = data.trim().split(' ');
+                if (parts.length === 2) {
+                    let current = parseInt(parts[0]);
+                    let max = parseInt(parts[1]);
+                    if (!isNaN(current) && !isNaN(max) && max > 0) {
+                        profilePanel.brightnessLevel = current / max;
+                    }
                 }
             }
         }
@@ -898,240 +507,49 @@ PanelWindow {
     }
 
     Process {
-        id: btProc
-        command: ["sh", "-c", bluetoothEnabled ? "bluetoothctl power on" : "bluetoothctl power off"]
+        id: kernelProc
+        command: ["sh", "-c", "uname -r 2>/dev/null || echo 'Linux'"]
         stdout: SplitParser {
             onRead: data => {
-                console.log("Bluetooth:", data);
+                var result = data.trim();
+                kernelText.text = result;
             }
         }
     }
 
-    // Component Definitions
-    component QuickToggle: Rectangle {
-        id: quickToggle
-        property var config
-        property string icon: ""
-        property string label: ""
-        property string subtitle: ""
-        property bool active: false
-        signal clicked
-
-        height: 100
-        radius: 12
-        color: active ? config.colors.accent : config.colors.bg
-
-        MouseArea {
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: quickToggle.clicked()
-            onEntered: {
-                if (!quickToggle.active)
-                    parent.color = config.colors.bgCardHover;
-            }
-            onExited: {
-                if (!quickToggle.active)
-                    parent.color = config.colors.bg;
-            }
-        }
-
-        Column {
-            anchors {
-                left: parent.left
-                leftMargin: 12
-                right: parent.right
-                rightMargin: 12
-                top: parent.top
-                topMargin: 12
-                bottom: parent.bottom
-                bottomMargin: 12
-            }
-            spacing: 6
-            clip: false
-
-            Text {
-                text: quickToggle.icon
-                font.family: quickToggle.config.fontFamily
-                font.pixelSize: 24
-                color: quickToggle.active ? quickToggle.config.colors.accentFg : quickToggle.config.colors.fg
-                anchors.horizontalCenter: parent.horizontalCenter
-            }
-
-            Text {
-                text: quickToggle.label
-                font.family: quickToggle.config.fontFamily
-                font.pixelSize: 14
-                font.weight: Font.Bold
-                color: quickToggle.active ? quickToggle.config.colors.accentFg : quickToggle.config.colors.fg
-                width: parent.width
-                horizontalAlignment: Text.AlignHCenter
-                wrapMode: Text.NoWrap
-                elide: Text.ElideRight
-            }
-
-            Text {
-                text: quickToggle.subtitle
-                font.family: quickToggle.config.fontFamily
-                font.pixelSize: 11
-                color: quickToggle.active ? quickToggle.config.colors.accentFg : quickToggle.config.colors.fgDim
-                width: parent.width
-                horizontalAlignment: Text.AlignHCenter
-                wrapMode: Text.NoWrap
-                elide: Text.ElideRight
-            }
-        }
-    }
-
-    component MonitorCircle: Column {
-        id: monitorCircle
-        property var config
-        property string label: ""
-        property string valueText: "0%"
-        property color circleColor: config.colors.info
-        property var canvas
-        property real percentage: canvas ? canvas.percentage : 0
-
-        spacing: 6
-        width: 70
-
-        Item {
-            width: 70
-            height: 70
-            anchors.horizontalCenter: parent.horizontalCenter
-
-            Rectangle {
-                anchors.centerIn: parent
-                width: 70
-                height: 70
-                radius: 35
-                color: "transparent"
-                border.width: 6
-                border.color: monitorCircle.config.colors.workspaceInactive
-            }
-
-            Canvas {
-                id: displayCanvas
-                anchors.fill: parent
-
-                onPaint: {
-                    var ctx = getContext("2d");
-                    ctx.clearRect(0, 0, width, height);
-                    ctx.lineWidth = 6;
-                    ctx.strokeStyle = monitorCircle.circleColor;
-                    ctx.lineCap = "round";
-                    var centerX = width / 2;
-                    var centerY = height / 2;
-                    var radius = 32;
-                    var startAngle = -Math.PI / 2;
-                    var endAngle = startAngle + (monitorCircle.percentage / 100) * 2 * Math.PI;
-                    ctx.beginPath();
-                    ctx.arc(centerX, centerY, radius, startAngle, endAngle, false);
-                    ctx.stroke();
-                }
-
-                Connections {
-                    target: monitorCircle.canvas
-                    function onPercentageChanged() {
-                        displayCanvas.requestPaint();
-                    }
-                }
-            }
-
-            Column {
-                anchors.centerIn: parent
-                Text {
-                    text: monitorCircle.valueText
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    font.family: monitorCircle.config.fontFamilyMono
-                    font.pixelSize: 13
-                    font.weight: Font.Bold
-                    color: monitorCircle.config.colors.fg
+    Process {
+        id: wifiSsidProc
+        command: ["sh", "-c", "nmcli -t -f active,ssid dev wifi | grep '^yes' | cut -d: -f2"]
+        stdout: SplitParser {
+            onRead: data => {
+                let ssid = data.trim();
+                if (ssid && ssid.length > 0) {
+                    profilePanel.wifiSsid = ssid;
+                    profilePanel.wifiEnabled = true;
+                } else {
+                    profilePanel.wifiSsid = "WiFi";
+                    profilePanel.wifiEnabled = false;
                 }
             }
         }
-
-        Text {
-            text: monitorCircle.label
-            anchors.horizontalCenter: parent.horizontalCenter
-            font.family: monitorCircle.config.fontFamily
-            font.pixelSize: 11
-            color: monitorCircle.config.colors.fgDim
-        }
     }
 
-    component InfoRow: Row {
-        property var config
-        property string icon: ""
-        property string label: ""
-        property string value: ""
-
-        spacing: 10
-        width: parent.width
-
-        Text {
-            text: icon
-            font.family: config.fontFamily
-            font.pixelSize: 16
-            color: config.colors.accent
-            anchors.verticalCenter: parent.verticalCenter
-        }
-
-        Text {
-            text: label + ":"
-            font.family: config.fontFamily
-            font.pixelSize: 13
-            color: config.colors.fgDim
-            anchors.verticalCenter: parent.verticalCenter
-            width: 80
-        }
-
-        Text {
-            text: value
-            font.family: config.fontFamilyMono
-            font.pixelSize: 13
-            color: config.colors.fg
-            anchors.verticalCenter: parent.verticalCenter
-            elide: Text.ElideRight
-            width: parent.width - 120
-        }
-    }
-
-    component PowerButton: Rectangle {
-        property var config
-        property string icon: ""
-        property string label: ""
-
-        height: 60
-        radius: 12
-        color: config.colors.bg
-
-        MouseArea {
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onEntered: parent.color = config.colors.bgCardHover
-            onExited: parent.color = config.colors.bg
-        }
-
-        Column {
-            anchors.centerIn: parent
-            spacing: 6
-
-            Text {
-                text: icon
-                font.family: config.fontFamily
-                font.pixelSize: 24
-                color: config.colors.fg
-                anchors.horizontalCenter: parent.horizontalCenter
+    Process {
+        id: wifiProc
+        command: ["sh", "-c", profilePanel.wifiEnabled ? "nmcli radio wifi on" : "nmcli radio wifi off"]
+        stdout: SplitParser {
+            onRead: data => {
+            // WiFi status check
             }
+        }
+    }
 
-            Text {
-                text: label
-                font.family: config.fontFamily
-                font.pixelSize: 12
-                color: config.colors.fgDim
-                anchors.horizontalCenter: parent.horizontalCenter
+    Process {
+        id: btProc
+        command: ["sh", "-c", profilePanel.bluetoothEnabled ? "bluetoothctl power on" : "bluetoothctl power off"]
+        stdout: SplitParser {
+            onRead: data => {
+            // Bluetooth status check
             }
         }
     }

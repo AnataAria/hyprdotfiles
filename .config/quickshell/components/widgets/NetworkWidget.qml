@@ -9,6 +9,7 @@ Rectangle {
     property string connectionType: "disconnected"
     property string ssid: ""
     property var wifiPanel
+    property var barScreen
 
     color: "transparent"
     radius: 4
@@ -44,6 +45,7 @@ Rectangle {
         cursorShape: Qt.PointingHandCursor
         onClicked: {
             if (networkWidget.wifiPanel) {
+                networkWidget.wifiPanel.screen = networkWidget.barScreen;
                 networkWidget.wifiPanel.loading = !networkWidget.wifiPanel.loading;
             }
         }

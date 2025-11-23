@@ -1,0 +1,12 @@
+module ProfileComponents
+
+QuickToggle 1.0 QuickToggle.qml
+MonitorCircle 1.0 MonitorCircle.qml
+InfoRow 1.0 InfoRow.qml
+PowerButton 1.0 PowerButton.qml
+SliderControl 1.0 SliderControl.qml
+UserInfoCard 1.0 UserInfoCard.qml
+SystemMonitorSection 1.0 SystemMonitorSection.qml
+SystemInfoCard 1.0 SystemInfoCard.qml
+PowerOptionsRow 1.0 PowerOptionsRow.qml
+QuickTogglesGrid 1.0 QuickTogglesGrid.qml

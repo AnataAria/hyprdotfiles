@@ -6,6 +6,7 @@ Rectangle {
 
     property var config
     property var settingsPanel
+    property var barScreen
 
     implicitWidth: dateLabel.width + 32
     implicitHeight: parent.height
@@ -35,6 +36,7 @@ Rectangle {
         cursorShape: Qt.PointingHandCursor
         onClicked: {
             if (dateButton.settingsPanel) {
+                dateButton.settingsPanel.screen = dateButton.barScreen;
                 dateButton.settingsPanel.loading = !dateButton.settingsPanel.loading;
             }
         }

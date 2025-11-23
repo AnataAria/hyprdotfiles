@@ -8,17 +8,13 @@ PanelWindow {
 
     property var config
     property bool loading: false
+    property var screen
     property string selectedSsid: ""
     property bool showPasswordInput: false
 
     anchors {
         right: true
         top: true
-    }
-
-    margins {
-        right: 10
-        top: 60
     }
 
     implicitWidth: 350
@@ -37,8 +33,6 @@ PanelWindow {
         Column {
             anchors.fill: parent
             spacing: 0
-
-            // Header
             Item {
                 width: parent.width
                 height: 60
@@ -68,8 +62,6 @@ PanelWindow {
                         anchors.verticalCenter: parent.verticalCenter
                     }
                 }
-
-                // Refresh button
                 Rectangle {
                     anchors {
                         right: parent.right
@@ -107,12 +99,9 @@ PanelWindow {
                 opacity: 0.3
             }
 
-            // WiFi List or Password Input
             Item {
                 width: parent.width
                 height: parent.height - 61
-
-                // WiFi Networks List
                 Flickable {
                     id: wifiListView
                     anchors.fill: parent
@@ -197,9 +186,7 @@ PanelWindow {
                                     cursorShape: Qt.PointingHandCursor
                                     onClicked: {
                                         selectedSsid = model.ssid;
-                                        if (model.connected) {
-                                            console.log("Already connected to:", selectedSsid);
-                                        } else if (model.security) {
+                                        if (model.connected) {} else if (model.security) {
                                             showPasswordInput = true;
                                         } else {
                                             connectToWifiProc.running = true;
@@ -224,8 +211,6 @@ PanelWindow {
                         }
                     }
                 }
-
-                // Password Input Screen
                 Column {
                     anchors {
                         fill: parent
@@ -374,23 +359,18 @@ PanelWindow {
             }
         }
     }
-
-    // Connect to WiFi
     Process {
         id: connectToWifiProc
         command: showPasswordInput && passwordInput.text ? ["sh", "-c", "nmcli device wifi connect '" + selectedSsid + "' password '" + passwordInput.text + "'"] : ["sh", "-c", "nmcli device wifi connect '" + selectedSsid + "'"]
 
         stdout: SplitParser {
             onRead: data => {
-                console.log("WiFi connection:", data);
                 showPasswordInput = false;
                 passwordInput.text = "";
                 scanWifiProc.running = true;
             }
         }
     }
-
-    // Auto-scan on open
     onLoadingChanged: {
         if (loading) {
             scanWifiProc.running = true;

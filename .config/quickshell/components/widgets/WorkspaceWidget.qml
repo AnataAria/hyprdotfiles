@@ -7,6 +7,7 @@ Rectangle {
 
     property var config
     property var popupLoader
+    property var barScreen
 
     implicitWidth: workspaceLabel.width + 32
     implicitHeight: parent.height
@@ -28,6 +29,7 @@ Rectangle {
         cursorShape: Qt.PointingHandCursor
         onClicked: {
             if (workspaceButton.popupLoader) {
+                workspaceButton.popupLoader.screen = workspaceButton.barScreen;
                 workspaceButton.popupLoader.loading = !workspaceButton.popupLoader.loading;
             }
         }

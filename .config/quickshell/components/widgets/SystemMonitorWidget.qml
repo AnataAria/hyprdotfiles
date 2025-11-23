@@ -9,7 +9,6 @@ Row {
 
     spacing: config.metrics.spacingLarge
 
-    // CPU
     Row {
         spacing: 6
 
@@ -32,7 +31,6 @@ Row {
         }
     }
 
-    // RAM
     Row {
         spacing: 6
 
@@ -55,7 +53,6 @@ Row {
         }
     }
 
-    // Battery
     Row {
         spacing: 6
         visible: batteryExists

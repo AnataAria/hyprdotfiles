@@ -74,9 +74,16 @@ Item {
                 }
                 spacing: barConfig.metrics.spacingLarge
 
-                SystemMonitorWidget {
+                NetworkWidget {
                     config: barConfig
-                    visible: barConfig.showSystemMonitor
+                    visible: barConfig.showNetwork
+                    wifiPanel: wifiPanelLoader
+                    anchors.verticalCenter: parent.verticalCenter
+                }
+
+                AudioWidget {
+                    config: barConfig
+                    visible: barConfig.showAudio
                     anchors.verticalCenter: parent.verticalCenter
                 }
 
@@ -88,22 +95,9 @@ Item {
                     anchors.verticalCenter: parent.verticalCenter
                 }
 
-                NetworkWidget {
+                SystemMonitorWidget {
                     config: barConfig
-                    visible: barConfig.showNetwork
-                    wifiPanel: wifiPanelLoader
-                    anchors.verticalCenter: parent.verticalCenter
-                }
-
-                BatteryWidget {
-                    config: barConfig
-                    visible: barConfig.showBattery
-                    anchors.verticalCenter: parent.verticalCenter
-                }
-
-                AudioWidget {
-                    config: barConfig
-                    visible: barConfig.showAudio
+                    visible: barConfig.showSystemMonitor
                     anchors.verticalCenter: parent.verticalCenter
                 }
 
@@ -115,7 +109,6 @@ Item {
         }
     }
 
-    // Workspace popup panel
     WorkspacePanel {
         id: workspacePopupLoader
         config: barConfig

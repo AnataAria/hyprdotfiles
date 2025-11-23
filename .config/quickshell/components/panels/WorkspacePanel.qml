@@ -8,6 +8,7 @@ PanelWindow {
 
     property var config
     property bool loading: false
+    property var screen
 
     anchors {
         left: true
@@ -28,7 +29,6 @@ PanelWindow {
         border.width: 1
         border.color: workspacePanel.config.colors.bgHighlight
 
-        // 3x3 Grid layout
         Grid {
             anchors {
                 fill: parent
@@ -70,8 +70,6 @@ PanelWindow {
 
                     border.width: isActive ? 2 : 0
                     border.color: workspacePanel.config.colors.accentBright
-
-                    // Workspace number
                     Text {
                         anchors.centerIn: parent
                         text: parent.workspaceId
@@ -80,8 +78,6 @@ PanelWindow {
                         font.weight: parent.isActive ? Font.Bold : Font.Normal
                         color: parent.isActive ? workspacePanel.config.colors.bg : workspacePanel.config.colors.fg
                     }
-
-                    // Hover effect
                     MouseArea {
                         anchors.fill: parent
                         cursorShape: Qt.PointingHandCursor
@@ -99,9 +95,7 @@ PanelWindow {
 
                         onClicked: {
                             var wsId = parent.workspaceId;
-                            console.log("Switching to workspace " + wsId);
                             Hyprland.dispatch("workspace " + wsId);
-                            // Close popup after switching
                             workspacePanel.loading = false;
                         }
                     }

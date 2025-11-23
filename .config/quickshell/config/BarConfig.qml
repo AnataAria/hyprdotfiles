@@ -1,11 +1,18 @@
 import QtQuick
+import Quickshell.Hyprland
 import "../theme"
 
 QtObject {
     id: config
 
+    // Read Hyprland monitor scale
+    readonly property var hyprlandMonitor: Hyprland.focusedMonitor
+    readonly property real hyprlandScale: hyprlandMonitor && hyprlandMonitor.scale ? hyprlandMonitor.scale : 1.0
+
     property Colors colors: Colors {}
-    property Metrics metrics: Metrics {}
+    property Metrics metrics: Metrics {
+        scaleFactor: config.hyprlandScale
+    }
 
     readonly property string position: "top"
 
