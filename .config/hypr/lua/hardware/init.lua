@@ -1,0 +1,5 @@
+require("lua.hardware.monitors")
+require("lua.hardware.input")
+require("lua.hardware.cursor")
+require("lua.hardware.xwayland")
+require("lua.hardware.gestures")

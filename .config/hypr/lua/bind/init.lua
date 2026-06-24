@@ -1,0 +1,6 @@
+require("lua.bind.applications")
+require("lua.bind.windows")
+require("lua.bind.workspaces")
+require("lua.bind.media")
+require("lua.bind.screenshots")
+require("lua.bind.mouse")
