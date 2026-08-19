@@ -1,10 +1,10 @@
 import QtQuick
 
 QtObject {
-    // Scale factor from Hyprland monitor
+    // Logical UI scale factor
     property real scaleFactor: 1.0
 
-    // Bigger, more scalable metrics - all scaled by scaleFactor
+    // Base metrics scaled by scaleFactor
     readonly property int barHeight: Math.round(44 * scaleFactor)
     readonly property int barMargin: Math.round(10 * scaleFactor)
     readonly property int barPaddingH: Math.round(20 * scaleFactor)

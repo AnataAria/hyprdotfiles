@@ -1,7 +1,6 @@
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
-import Quickshell.Hyprland
 import Quickshell.Io
 import "../profile"
 
@@ -13,10 +12,7 @@ PanelWindow {
     property var screen
     property var settingsWindow
 
-    readonly property var hyprlandMonitor: Hyprland.focusedMonitor
-    readonly property real hyprlandScale: hyprlandMonitor && hyprlandMonitor.scale ? hyprlandMonitor.scale : 1.0
-    readonly property real screenWidth: hyprlandMonitor ? hyprlandMonitor.width : 1920
-    readonly property real screenHeight: hyprlandMonitor ? hyprlandMonitor.height : 1080
+    readonly property real layoutScale: 1.0
 
     anchors {
         right: true
@@ -24,12 +20,12 @@ PanelWindow {
     }
 
     margins {
-        right: Math.round(10 * hyprlandScale)
-        top: Math.round(10 * hyprlandScale)
+        right: Math.round(10 * layoutScale)
+        top: Math.round(10 * layoutScale)
     }
 
-    implicitWidth: Math.round(Math.min(420, screenWidth * 0.22) * hyprlandScale)
-    implicitHeight: Math.round(Math.min(700, screenHeight * 0.65) * hyprlandScale)
+    implicitWidth: 420
+    implicitHeight: 700
     visible: loading
 
     color: "transparent"
@@ -71,51 +67,51 @@ PanelWindow {
     Rectangle {
         anchors.fill: parent
         color: profilePanel.config.colors.bgCard
-        radius: Math.round(16 * hyprlandScale)
-        border.width: Math.max(1, Math.round(1 * hyprlandScale))
+        radius: Math.round(16 * layoutScale)
+        border.width: Math.max(1, Math.round(1 * layoutScale))
         border.color: profilePanel.config.colors.bgHighlight
 
         Flickable {
             anchors.fill: parent
-            anchors.margins: Math.round(20 * hyprlandScale)
+            anchors.margins: Math.round(20 * layoutScale)
             contentHeight: mainColumn.height
             clip: true
 
             Column {
                 id: mainColumn
                 width: parent.width
-                spacing: Math.round(20 * hyprlandScale)
+                spacing: Math.round(20 * layoutScale)
 
                 // Header Row
                 Row {
                     width: parent.width
-                    spacing: Math.round(12 * hyprlandScale)
+                    spacing: Math.round(12 * layoutScale)
 
                     Text {
                         text: "Quick Settings"
                         font.family: profilePanel.config.fontFamily
-                        font.pixelSize: Math.round(18 * hyprlandScale)
+                        font.pixelSize: Math.round(18 * layoutScale)
                         font.weight: Font.Bold
                         color: profilePanel.config.colors.fg
                         anchors.verticalCenter: parent.verticalCenter
                     }
 
                     Item {
-                        width: parent.width - Math.round(250 * hyprlandScale)
+                        width: parent.width - Math.round(250 * layoutScale)
                         height: 1
                     }
 
                     Rectangle {
-                        width: Math.round(40 * hyprlandScale)
-                        height: Math.round(40 * hyprlandScale)
-                        radius: Math.round(20 * hyprlandScale)
+                        width: Math.round(40 * layoutScale)
+                        height: Math.round(40 * layoutScale)
+                        radius: Math.round(20 * layoutScale)
                         color: profilePanel.config.colors.bg
                         anchors.verticalCenter: parent.verticalCenter
 
                         Text {
                             text: "⚙"
                             anchors.centerIn: parent
-                            font.pixelSize: Math.round(20 * hyprlandScale)
+                            font.pixelSize: Math.round(20 * layoutScale)
                             color: profilePanel.config.colors.fg
                         }
 
@@ -136,7 +132,7 @@ PanelWindow {
                     config: profilePanel.config
                     username: usernameText.text
                     uptime: uptimeText.text
-                    scale: profilePanel.hyprlandScale
+                    scale: profilePanel.layoutScale
                 }
 
                 // Quick Toggles Grid
@@ -147,7 +143,7 @@ PanelWindow {
                     focusModeEnabled: profilePanel.focusModeEnabled
                     darkThemeEnabled: profilePanel.darkThemeEnabled
                     wifiSsid: profilePanel.wifiSsid
-                    scale: profilePanel.hyprlandScale
+                    scale: profilePanel.layoutScale
 
                     onWifiToggled: {
                         profilePanel.wifiEnabled = !profilePanel.wifiEnabled;
@@ -171,7 +167,7 @@ PanelWindow {
                     icon: "󰕾"
                     label: "Volume"
                     value: profilePanel.volumeLevel
-                    scale: profilePanel.hyprlandScale
+                    scale: profilePanel.layoutScale
                     onValueChanged: {
                         profilePanel.volumeLevel = value;
                     }
@@ -183,7 +179,7 @@ PanelWindow {
                     icon: "󰃠"
                     label: "Brightness"
                     value: profilePanel.brightnessLevel
-                    scale: profilePanel.hyprlandScale
+                    scale: profilePanel.layoutScale
                     onValueChanged: {
                         profilePanel.brightnessLevel = value;
                     }
@@ -192,7 +188,7 @@ PanelWindow {
                 // Separator
                 Rectangle {
                     width: parent.width
-                    height: Math.max(1, Math.round(2 * hyprlandScale))
+                    height: Math.max(1, Math.round(2 * layoutScale))
                     color: profilePanel.config.colors.bgHighlight
                     opacity: 0.2
                 }
@@ -208,7 +204,7 @@ PanelWindow {
                     ramCanvas: ramCanvas
                     gpuCanvas: gpuCanvas
                     tempCanvas: tempCanvas
-                    scale: profilePanel.hyprlandScale
+                    scale: profilePanel.layoutScale
                 }
 
                 // System Info Card
@@ -217,19 +213,19 @@ PanelWindow {
                     hostname: hostnameText.text
                     kernel: kernelText.text
                     uptime: uptimeText.text
-                    scale: profilePanel.hyprlandScale
+                    scale: profilePanel.layoutScale
                 }
 
                 // Power Options
                 PowerOptionsRow {
                     config: profilePanel.config
-                    scale: profilePanel.hyprlandScale
+                    scale: profilePanel.layoutScale
                 }
 
                 // Bottom padding
                 Item {
                     width: parent.width
-                    height: Math.round(10 * hyprlandScale)
+                    height: Math.round(10 * layoutScale)
                 }
             }
         }
