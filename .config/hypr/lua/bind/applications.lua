@@ -96,3 +96,27 @@ hl.bind(
     ),
     { description = "Clipboard history" }
 )
+
+hl.bind(
+    mod .. " + G",
+    hl.dsp.exec_cmd(apps.steam),
+    { description = "Open Steam" }
+)
+
+hl.bind(
+    mod .. " + SHIFT + G",
+    hl.dsp.exec_cmd(apps.steam_big_picture),
+    { description = "Open Steam Big Picture" }
+)
+
+hl.bind(
+    mod .. " + A",
+    hl.dsp.exec_cmd(apps.waydroid),
+    { description = "Open Waydroid" }
+)
+
+hl.bind(
+    mod .. " + SHIFT + A",
+    hl.dsp.exec_cmd(apps.waydroid_stop),
+    { description = "Stop Waydroid" }
+)

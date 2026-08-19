@@ -105,7 +105,6 @@ hl.window_rule({
     opacity = "0.96 override 0.92 override",
 })
 
--- JetBrains popups/dialogs.
 hl.window_rule({
     name = "jetbrains-dialogs",
     match = {
@@ -117,7 +116,6 @@ hl.window_rule({
     center = true,
 })
 
--- Prevent selected temporary JetBrains windows from stealing focus.
 hl.window_rule({
     name = "jetbrains-no-initial-focus",
     match = {
@@ -129,37 +127,79 @@ hl.window_rule({
 })
 
 hl.window_rule({
-    name = "browser-workspace",
+    name = "steam-client",
     match = {
-        class = "^(firefox|firefox-developer-edition)$",
+        class = "^[Ss]team$",
     },
 
-    workspace = "2 silent",
+    no_blur = true,
+    opaque = true,
+    focus_on_activate = true,
 })
 
 hl.window_rule({
-    name = "mail-workspace",
+    name = "steam-dialogs",
     match = {
-        class = "^(thunderbird)$",
+        class = "^[Ss]team$",
+        title = "^(Friends List|Steam Settings|Properties.*|Launching.*|.* - Chat)$",
     },
 
-    workspace = "3 silent",
+    float = true,
+    center = true,
+    focus_on_activate = true,
 })
 
 hl.window_rule({
-    name = "code-workspace",
+    name = "steam-games",
     match = {
-        class = "^(code|Code|code-oss|VSCodium)$",
+        class = "^(steam_app_[0-9]+|gamescope)$",
     },
 
-    workspace = "4 silent",
+    content = "game",
+    idle_inhibit = "fullscreen",
+    immediate = true,
+    no_blur = true,
+    no_shadow = true,
+    border_size = 0,
+    rounding = 0,
+    focus_on_activate = true,
 })
 
 hl.window_rule({
-    name = "github-workspace",
+    name = "game-windows",
     match = {
-        class = "^(GitHub Desktop|github-desktop)$",
+        content = "game",
     },
 
-    workspace = "5 silent",
+    idle_inhibit = "fullscreen",
+    immediate = true,
+    no_blur = true,
+    no_shadow = true,
+    border_size = 0,
+    rounding = 0,
+})
+
+hl.window_rule({
+    name = "fullscreen-game-pointer",
+    match = {
+        content = "game",
+        fullscreen = true,
+    },
+
+    confine_pointer = true,
+})
+
+hl.window_rule({
+    name = "waydroid-fullscreen",
+    match = {
+        class = "^[Ww]aydroid.*",
+    },
+
+    fullscreen = true,
+    no_blur = true,
+    no_shadow = true,
+    border_size = 0,
+    rounding = 0,
+    idle_inhibit = "focus",
+    focus_on_activate = true,
 })

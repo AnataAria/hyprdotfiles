@@ -6,8 +6,9 @@ hl.env("XDG_SESSION_TYPE", "wayland")
 
 hl.env("GTK_THEME", "Dracula")
 hl.env("QT_QPA_PLATFORM", "wayland;xcb")
+hl.env("QT_AUTO_SCREEN_SCALE_FACTOR", "1")
+hl.env("ELECTRON_OZONE_PLATFORM_HINT", "auto")
 hl.env("QML2_IMPORT_PATH", config.paths.quickshell)
-hl.env("GDK_SCALE", "2")
 hl.env("XCURSOR_SIZE", "32")
 
 hl.env("SDL_VIDEODRIVER", "wayland")

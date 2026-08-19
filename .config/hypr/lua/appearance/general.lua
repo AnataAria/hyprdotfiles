@@ -10,6 +10,7 @@ hl.config({
         ["col.inactive_border"] = config.vars.colors.inactive_border,
 
         layout = "dwindle",
+        allow_tearing = true,
     },
 
     dwindle = {
