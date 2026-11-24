@@ -102,7 +102,7 @@ hl.window_rule({
         class = "^(org.wezfurlong.wezterm|wezterm|foot)$",
     },
 
-    opacity = "0.96 override 0.92 override",
+    opacity = "0.99 override 0.96 override",
 })
 
 hl.window_rule({

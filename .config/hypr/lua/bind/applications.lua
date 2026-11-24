@@ -61,9 +61,9 @@ local function_applications = {
     F7 = "inkscape",
     F8 = "blender",
     F9 = "meld",
-    F10 = "joplin-desktop",
+    F10 = "obsidian",
     F11 = "snapper-tools",
-    F12 = "galculator",
+    F12 = "qalculate-qt",
 }
 
 for key, command in pairs(function_applications) do
@@ -88,14 +88,7 @@ hl.bind(
     { description = "Toggle Quickshell" }
 )
 
-hl.bind(
-    mod .. " + V",
-    hl.dsp.exec_cmd(
-        "cliphist list | wofi --dmenu | " ..
-        "cliphist decode | wl-copy"
-    ),
-    { description = "Clipboard history" }
-)
+
 
 hl.bind(
     mod .. " + G",
